@@ -1,0 +1,43 @@
+---
+title: "p8105_hw2_xc2473"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Quesiton 1
+```{r}
+library(tidyverse)
+
+library(readxl)
+
+mtw_data = 
+  read_excel("./HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = 1, col_names = TRUE) %>%
+  janitor::clean_names() %>%
+  select(dumpster:homes_powered) %>% 
+  drop_na(dumpster) %>%
+  mutate(sports_balls = as.integer(sports_balls))
+```
+```{r}
+precip_17_data =
+  read_excel("./HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = 4, col_names = TRUE, skip = 1) %>% 
+  janitor::clean_names() %>%
+  drop_na(total) %>%
+  mutate(year = 2017) %>% 
+  select(year, month, total)
+
+precip_18_data =
+  read_excel("./HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = 3, col_names = TRUE, skip = 1) %>% 
+  janitor::clean_names() %>%
+  drop_na(total) %>%
+  mutate(year = 2018) %>% 
+  select(year, month, total)
+
+precip_1718_data = 
+  full_join(precip_17_data, precip_18_data, by = c("year", "month", "total")) %>% 
+  mutate(month = factor(month.name[1:21]))
+```
+
+
+
