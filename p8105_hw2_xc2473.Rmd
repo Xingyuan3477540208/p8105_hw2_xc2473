@@ -134,11 +134,3 @@ ggplot_wnh_2016 = ggplot(wnh_2016, aes(x = rank, y = count)) + geom_point()
 ggplot_wnh_2016
 ```
 
-
-
-
-
-
-
-
-
