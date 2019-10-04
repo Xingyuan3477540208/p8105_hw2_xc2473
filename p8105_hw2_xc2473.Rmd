@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 ```
 ##Quesiton 1
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 
 library(readxl)
@@ -24,7 +24,7 @@ mtw_data =
   mutate(sports_balls = as.integer(sports_balls)) 
   
 ```
-```{r}
+```{r, message = FALSE}
 precip_17_data =
   read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet = 6, col_names = TRUE, skip = 1) %>% 
   janitor::clean_names() %>%
@@ -49,7 +49,7 @@ There are `r nrow(mtw_data)` observations in mtw_data dataset. Dumpster, weight_
 The total precipitation in 2018 was `r sum(pull(precip_18_data, total))`. The median number of sports balls in a dumpster in 2017 was `r median(pull(mtw_data %>% filter(year==2017), sports_balls))`.
 
 ###Question 2###
-```{r}
+```{r, message = FALSE}
 pols_month_data = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>%
   janitor::clean_names() %>%
   separate(mon, into = c("year", "month", "day"), sep = "([\\-])") %>%
@@ -73,23 +73,25 @@ snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv") %>%
 
 unempolyment_data = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv") %>%
   janitor::clean_names() %>% 
+  rename(Jan = jan, Feb = feb, Mar = mar, Apr = apr, May = may, Jun = jun, Jul = jul, Aug = aug, Sep = sep, Oct = oct, Nov = nov, Dec = dec) %>% 
   pivot_longer(
-    jan:dec,
+    Jan:Dec,
     names_to = "month",
     values_to = "unemployment") 
 
-merge_1_data = left_join(pols_month_data, snp_data, by = "year", "month")
+merge_1_data = left_join(pols_month_data, snp_data, by = c("year", "month"))
 
-merge_data = left_join(unempolyment_data, merge_1_data, by = "year", "month")
+merge_data = left_join(merge_1_data, unempolyment_data, by = c("year", "month"))
 ```
 
-The range of years in pols-month.csv document is `r range(pull(pols_month_data, year))`. The key variables are year, month, ... dimension???
-The range of years in snp.csv document is `r range(pull(snp_data, year))`. The key variables are year, month, day and close.
-The range of years in unemployment.csv is `r range(pull(unempolyment_data, year))`. The key variables are year, month, unemployment.
+There are `r nrow(pols_month_data)` observations and `r ncol(pols_month_data)` varaibles in pols_month_data dataset. The range of years is `r range(pull(pols_month_data, year))`. The key variables are year, month, gov_gop, sen_gop, rep_gop, gov_dem, sen_dem, rep_dem, and presidents.
+There are `r nrow(snp_data)` observations and `r ncol(snp_data)` varaibles in snp_data dataset. The range of years is (`r range(pull(snp_data, year))`). The key variables are year, month, day and close.
+There are `r nrow(unempolyment_data)` observations and `r ncol(unempolyment_data)` varaibles in pols_month_data dataset. The range of years is (`r range(pull(unempolyment_data, year))`). The key variables are year, month, unemployment.
+There are `r nrow(merge_data)` observations and `r ncol(merge_data)` varaibles in the resulting dataset. The range of years is (`r range(pull(merge_data, year))`). The key variables are year, month, unemployment, close, gov_gop, sen_gop, rep_gop, gov_dem and so on.
 
 ###Question 3###
 Load and tidy the data.
-```{r}
+```{r, message = FALSE}
 pop_baby_name_data = read_csv(file = "./Popular_Baby_Names.csv") %>%
   janitor::clean_names() %>% 
   mutate(childs_first_name = str_to_upper(childs_first_name),
@@ -97,33 +99,39 @@ pop_baby_name_data = read_csv(file = "./Popular_Baby_Names.csv") %>%
   distinct()
 ```
 Rank in popularity of the name “Olivia” as a female baby name over time
-```{r}
+```{r, message = FALSE}
 olivia_rank = pop_baby_name_data %>% 
   filter(childs_first_name == "OLIVIA", gender == "FEMALE") %>% 
   select(childs_first_name, gender, ethnicity, year_of_birth, rank) %>% 
   pivot_wider(
     names_from = year_of_birth,
     values_from = rank
-  ) %>% 
-  knitr::kable()
+  ) 
+knitr::kable(olivia_rank)
 ```
+
 A table showing the most popular name among male children over time.
-```{r}
+
+```{r, message = FALSE}
 most_pop_male_name = pop_baby_name_data %>% 
   filter(gender == "MALE", rank == 1) %>% 
   select(childs_first_name, ethnicity, year_of_birth) %>% 
   pivot_wider(
     names_from = year_of_birth,
     values_from = childs_first_name
-  ) %>% 
-  knitr::kable()
+  )  
+  knitr::kable(most_pop_male_name)
 ```
+
 For male, white non-hispanic children born in 2016, a scatter plot shows the number of children with a name (y axis) against the rank in popularity of that name (x axis)
-```{r}
+
+```{r, message = FALSE}
 wnh_2016 = pop_baby_name_data %>% 
   filter(gender == "MALE", ethnicity == "WHITE NON HISPANIC", year_of_birth == 2016 )
 
-wnh_2016 = ggplot(pop_baby_name_data, aes(x = rank, y = count)) + geom_point()
+ggplot_wnh_2016 = ggplot(wnh_2016, aes(x = rank, y = count)) + geom_point()
+
+ggplot_wnh_2016
 ```
 
 
