@@ -1,6 +1,8 @@
 ---
 title: "p8105_hw2_xc2473"
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -13,31 +15,64 @@ library(tidyverse)
 library(readxl)
 
 mtw_data = 
-  read_excel("./HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = 1, col_names = TRUE) %>%
+  read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet = 1, col_names = TRUE) %>%
   janitor::clean_names() %>%
   select(dumpster:homes_powered) %>% 
   drop_na(dumpster) %>%
-  mutate(sports_balls = as.integer(sports_balls))
+  mutate(sports_balls = as.integer(sports_balls)) 
+  
 ```
 ```{r}
 precip_17_data =
-  read_excel("./HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = 4, col_names = TRUE, skip = 1) %>% 
+  read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet = 6, col_names = TRUE, skip = 1) %>% 
   janitor::clean_names() %>%
-  drop_na(total) %>%
+  drop_na(total, month) %>%
   mutate(year = 2017) %>% 
   select(year, month, total)
 
 precip_18_data =
-  read_excel("./HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = 3, col_names = TRUE, skip = 1) %>% 
+  read_excel("./Trash-Wheel-Collection-Totals-8-6-19.xlsx", sheet = 5, col_names = TRUE, skip = 1) %>% 
   janitor::clean_names() %>%
-  drop_na(total) %>%
+  drop_na(total, month) %>%
   mutate(year = 2018) %>% 
   select(year, month, total)
 
 precip_1718_data = 
   full_join(precip_17_data, precip_18_data, by = c("year", "month", "total")) %>% 
-  mutate(month = factor(month.name[1:21]))
+  group_by(year) %>% 
+  mutate(month = month.name[month],
+         year_total = sum(total) )
+```
+There are `r nrow(mtw_data)` observations in mtw_data dataset. Dumpster, weight_tons and volume_cubic_yards are examples of key variables. There are `r nrow(precip_1718_data)` obserrvations in precip_1718_data dataset.Year, month and total are key variables of it.
+The total precipitation in 2018 was `r sum(pull(precip_18_data, total))`. The median number of sports balls in a dumpster in 2017 was `r median(pull(mtw_data %>% filter(year==2017), sports_balls))`.
+
+```{r}
+pols_month_data = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>%
+  janitor::clean_names() %>%
+  separate(mon, into = c("year", "month", "day"), sep = "([\\-])") %>%
+  mutate(year = as.numeric(year),
+         month = month.name[as.numeric(month)],
+         day = as.numeric(day),
+         president = ifelse(prez_dem == 1, "DEM", "GOP")
+         ) %>% 
+  select(-prez_dem, -prez_gop, -day) %>%
+  arrange(year, month)
+  
+snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv") %>%
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year"), sep = "([\\/])") %>%
+  mutate(year = as.numeric(year),
+         month = month.name[as.numeric(month)],
+         day = as.numeric(day),
+         ) %>% 
+  select(year, month, day, close) %>%
+  arrange(year, month)
 ```
 
+
+
+
+
+###Question 2###
 
 
